@@ -60,6 +60,7 @@ void printar_tabuleiro(char letras[], unsigned short numeros[], unsigned short**
             printf("\n");
         }
     }
+    printf("\n");
 }
 
 // Posicionar navio
