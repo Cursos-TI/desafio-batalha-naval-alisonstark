@@ -98,6 +98,8 @@ void printar_tabuleiro(char letras[], unsigned short numeros[], unsigned short**
                     printf("\033[0;36m%hu\033[0m  ", tabuleiro[i-1][j-1]);
                 } else if (tabuleiro[i-1][j-1] == 5) {
                     printf("\033[0;32m%hu\033[0m  ", tabuleiro[i-1][j-1]);
+                } else if (tabuleiro[i-1][j-1] == 1) {
+                    printf("\033[0;31m%hu\033[0m  ", tabuleiro[i-1][j-1]); // Pintar de vermelho se for 1
                 } else {
                     printf("%hu  ", tabuleiro[i-1][j-1]);
                 }
@@ -114,7 +116,7 @@ void printar_tabuleiro(char letras[], unsigned short numeros[], unsigned short**
 }
 
 // Posicionar navio
-// Considere orientacao 'h' para horizontal e 'v' para vertical
+// Considere orientação 'h' para horizontal, 'v' para vertical e 'd' para diagonal
 void posicionar_navio(unsigned short** tabuleiro, unsigned short tamanho_tabuleiro, unsigned short navio[], unsigned short tamanho_navio, unsigned short coord_letra, unsigned short coord_num, char orientacao){
     
     // Traduzir coordenadas em termos de (i,j)
@@ -125,7 +127,7 @@ void posicionar_navio(unsigned short** tabuleiro, unsigned short tamanho_tabulei
     if (orientacao == 'h') {
         for (unsigned short k = 0; k < tamanho_navio; k++) {
             // Checar se a posicao nao esta ocupada e se esta dentro dos limites do tabuleiro
-            if(tabuleiro[coord_i][coord_j + k] != 0 && (coord_j + k) < tamanho_tabuleiro){
+            if(tabuleiro[coord_i][coord_j + k] != 0 && tabuleiro[coord_i][coord_j + k] != 1 && (coord_j + k) < tamanho_tabuleiro){
                 printf("Erro: Posição já ocupada no tabuleiro ou limite do tabuleiro ultrapassado!\n");
                 return;
             }
@@ -133,7 +135,7 @@ void posicionar_navio(unsigned short** tabuleiro, unsigned short tamanho_tabulei
         }
     } else if (orientacao == 'v') {
         for (unsigned short k = 0; k < tamanho_navio; k++) {
-            if(tabuleiro[coord_i + k][coord_j] != 0 && (coord_i + k) < tamanho_tabuleiro){
+            if(tabuleiro[coord_i + k][coord_j] != 0 && tabuleiro[coord_i + k][coord_j] != 1 && (coord_i + k) < tamanho_tabuleiro){
                 printf("Erro: Posição já ocupada no tabuleiro ou limite do tabuleiro ultrapassado!\n");
                 return;
             }
@@ -156,7 +158,7 @@ void posicionar_navio(unsigned short** tabuleiro, unsigned short tamanho_tabulei
         // Diagonal que corta quadrantes ímpares (de baixo para cima, da esquerda para a direita)
         if(orient_diagonal == 1) {
             for (unsigned short k = 0; k < tamanho_navio; k++) {
-                if(tabuleiro[coord_i - k][coord_j + k] != 0 && (coord_i - k) < tamanho_tabuleiro){
+                if(tabuleiro[coord_i - k][coord_j + k] != 0 && tabuleiro[coord_i - k][coord_j + k] != 1 && (coord_i - k) < tamanho_tabuleiro){
                     printf("Erro: Posição já ocupada no tabuleiro ou limite do tabuleiro ultrapassado!\n");
                     return;
                 }
@@ -165,7 +167,7 @@ void posicionar_navio(unsigned short** tabuleiro, unsigned short tamanho_tabulei
         // Diagonal que corta quadrantes pares (de cima para baixo, da esquerda para a direita)
         } else {
             for (unsigned short k = 0; k < tamanho_navio; k++) {
-                if(tabuleiro[coord_i + k][coord_j + k] != 0 && (coord_i + k) < tamanho_tabuleiro){
+                if(tabuleiro[coord_i + k][coord_j + k] != 0 && tabuleiro[coord_i + k][coord_j + k] != 1 && (coord_i + k) < tamanho_tabuleiro){
                     printf("Erro: Posição já ocupada no tabuleiro ou limite do tabuleiro ultrapassado!\n");
                     return;
                 }
@@ -175,9 +177,50 @@ void posicionar_navio(unsigned short** tabuleiro, unsigned short tamanho_tabulei
     }
 }
 
+// Habilidade de matriz em cone
+void aplicar_cone(unsigned short** tabuleiro, unsigned short tamanho_tabuleiro) {
+    for(unsigned short i = 0; i < tamanho_tabuleiro; i++){
+        // Usar a funcao posicionar_navio para criar um cone dentro da matriz, assumindo que a matriz quadrada tem lado impar
+        // O cone terá altura igual ao tamanho do tabuleiro e largura crescente
+        for(unsigned short j = 0; j <= i; j++){
+            if(i > tamanho_tabuleiro / 2){
+                break; // Limitar a altura do cone para metade do tabuleiro, inclusivo
+            }
+            tabuleiro[i][(tamanho_tabuleiro/2) - j] = 1; // Lado esquerdo do cone
+            tabuleiro[i][(tamanho_tabuleiro/2) + j] = 1; // Lado direito do cone
+        }
+    }
+}
+
+void aplicar_octaedro(unsigned short** tabuleiro, unsigned short tamanho_tabuleiro){
+    unsigned short contador = tamanho_tabuleiro/2;
+    for(unsigned short i = 0; i < tamanho_tabuleiro; i++){
+        // Usar a funcao posicionar_navio para criar um octaedro dentro da matriz, assumindo que a matriz quadrada tem lado impar
+        // O octaedro terá altura igual ao tamanho do tabuleiro e largura crescente e decrescente
+        unsigned short dist = (i <= tamanho_tabuleiro / 2) ? i : tamanho_tabuleiro - 1 - i;
+        for(unsigned short j = 0; j <= dist; j++){
+                tabuleiro[i][(tamanho_tabuleiro/2) - j] = 1; // Lado esquerdo do octaedro
+                tabuleiro[i][(tamanho_tabuleiro/2) + j] = 1; // Lado direito do octaedro
+        }
+    }
+}
+
+void aplicar_cruz(unsigned short** tabuleiro, unsigned short tamanho_tabuleiro){
+
+    for(unsigned short i = 0; i < tamanho_tabuleiro; i++){
+        if(i == tamanho_tabuleiro/2){
+            for(unsigned short j = 0; j < tamanho_tabuleiro; j++){
+                tabuleiro[i][j] = 1;
+            }
+        } else {
+            tabuleiro[i][tamanho_tabuleiro/2] = 1;
+        }
+    }
+}
+
 int main() {
 
-    // TODO Deixar o processo mais dinamico solicitando entrada do usuário para o posicionamento e orientacao dos navios e definiçao do tamanho do tabuleiro
+    // TODO Deixar o processo mais dinamico solicitando entrada do usuário para o posicionamento e orientação dos navios e definição do tamanho do tabuleiro
     // Navios podem ter tamanho variável (mínimo 2 e máximo 5)
     // Tabuleiro pode ter tamanho variável (mínimo 5x5 e máximo 10x10)
 
@@ -203,10 +246,10 @@ int main() {
 
     // Salvar opção do usuário
     unsigned short nivel_dificuldade;
-    printf("Digite o numero correspondente ao nivel desejado: ");
+    printf("Digite o número correspondente ao nivel desejado: ");
     scanf("%hu", &nivel_dificuldade);
     while(nivel_dificuldade < 1 || nivel_dificuldade > 3){
-        printf("Nivel invalido! Escolha um nivel entre 1 e 3: ");
+        printf("Nivel inválido! Escolha um nível entre 1 e 3: ");
         scanf("%hu", &nivel_dificuldade);
     }
 
@@ -216,14 +259,43 @@ int main() {
     char letras[tamanho_tabuleiro];                                                     
     unsigned short numeros[tamanho_tabuleiro];
 
-    // Coordenadas
+    // Inicializar coordenadas
     char coord_letra;
     unsigned short coord_num;
     char orientacao;
 
+    // Área de habilidade de matriz
+    if(tamanho_tabuleiro % 2 != 0){
+        unsigned short escolha_habi;
+        printf("\nTabuleiro de tamanho ímpar detectado. Habilidades de matriz disponíveis!\n"); 
+        printf("Deseja aplicar habilidade de matriz?\n");
+        printf("(1)\t\t Cone\n");
+        printf("(2)\t\t Octaedro\n");
+        printf("(3)\t\t Cruz\n");
+        printf("(0)\t\t Nenhuma\n\n");
+        printf("Escolha a habilidade desejada (digite o número correspondente): ");
+        scanf("%hu", &escolha_habi);
+
+        if(escolha_habi == 1){
+            aplicar_cone(tabuleiro_inicializado, tamanho_tabuleiro);
+            printf("Habilidade de matriz em cone aplicada!\n");
+        } else if(escolha_habi == 2){
+            aplicar_octaedro(tabuleiro_inicializado, tamanho_tabuleiro);
+            printf("Habilidade de matriz em octaedro aplicada!\n");
+        } else if(escolha_habi == 3){
+            aplicar_cruz(tabuleiro_inicializado, tamanho_tabuleiro);
+        } else {
+            printf("Nenhuma habilidade de matriz aplicada.\n");
+        }
+
+    } else {
+        printf("\nTabuleiro de tamanho par detectado. Habilidades de matriz indisponíveis.\n\n");
+    }
     
+
     // Posicionar navios de acordo com o nível de dificuldade
     // Poderia transformar o switch em uma funcao, mas deixei assim para facilitar a visualizacao do fluxo principal do programa
+    printf("########## Posicionamento dos navios ########## \n");
     switch(nivel_dificuldade){
         case 1:
             printf("Escolha as coordenadas do navio tamanho 3: \n");
