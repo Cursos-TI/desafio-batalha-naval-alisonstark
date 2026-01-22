@@ -8,10 +8,6 @@
 // Siga os comentários para implementar cada parte do desafio.
 
 // #############################
-    // Nível Aventureiro - Expansão do Tabuleiro e Posicionamento Diagonal
-    // Sugestão: Expanda o tabuleiro para uma matriz 10x10.
-    // Sugestão: Posicione quatro navios no tabuleiro, incluindo dois na diagonal.
-    // Sugestão: Exiba o tabuleiro completo no console, mostrando 0 para posições vazias e 3 para posições ocupadas.
 
     // Nível Mestre - Habilidades Especiais com Matrizes
     // Sugestão: Crie matrizes para representar habilidades especiais como cone, cruz, e octaedro.
@@ -36,9 +32,11 @@
 
 // #############################
 
-// Por padrao, os navios sao posicionados horizontalmnente da esquerda para a direita
-// ou verticalmente de cima para baixo, dependendo da orientacao escolhida pelo usuario.
-// TODO Permitir posicionamento diagonal dos navios
+// Por padrão, os navios são posicionados horizontalmente da esquerda para a direita
+// ou verticalmente de cima para baixo, dependendo da orientação escolhida pelo usuário.
+// No caso do posicionamento diagonal, o navio pode ser posicionado em duas direções:
+// 1. Diagonal que corta quadrantes pares (de cima para baixo, da esquerda para a direita)
+// 2. Diagonal que corta quadrantes ímpares (de baixo para cima, da esquerda para a direita)
 
 // Definir funcao para inicializar o tabuleiro
 unsigned short** inicializar_tabuleiro(unsigned short** tabuleiro, unsigned short tamanho_tabuleiro){
@@ -117,7 +115,7 @@ void printar_tabuleiro(char letras[], unsigned short numeros[], unsigned short**
 
 // Posicionar navio
 // Considere orientacao 'h' para horizontal e 'v' para vertical
-void posicionar_navio(unsigned short** tabuleiro, unsigned short tamanho_tabuleiro, unsigned short navio[3], unsigned short coord_letra, unsigned short coord_num, char orientacao){
+void posicionar_navio(unsigned short** tabuleiro, unsigned short tamanho_tabuleiro, unsigned short navio[], unsigned short tamanho_navio, unsigned short coord_letra, unsigned short coord_num, char orientacao){
     
     // Traduzir coordenadas em termos de (i,j)
     unsigned short coord_i = coord_num - 1; // linha
@@ -125,33 +123,59 @@ void posicionar_navio(unsigned short** tabuleiro, unsigned short tamanho_tabulei
     unsigned short coord_j = coord_letra - 'A'; // coluna
     
     if (orientacao == 'h') {
-        for (unsigned short k = 0; k < 3; k++) {
+        for (unsigned short k = 0; k < tamanho_navio; k++) {
             // Checar se a posicao nao esta ocupada e se esta dentro dos limites do tabuleiro
             if(tabuleiro[coord_i][coord_j + k] != 0 && (coord_j + k) < tamanho_tabuleiro){
-                printf("Erro: Posicao ja ocupada no tabuleiro ou limite do tabuleiro ultrapassado!\n");
+                printf("Erro: Posição já ocupada no tabuleiro ou limite do tabuleiro ultrapassado!\n");
                 return;
             }
             tabuleiro[coord_i][coord_j + k] = navio[k];
         }
     } else if (orientacao == 'v') {
-        for (unsigned short k = 0; k < 3; k++) {
+        for (unsigned short k = 0; k < tamanho_navio; k++) {
             if(tabuleiro[coord_i + k][coord_j] != 0 && (coord_i + k) < tamanho_tabuleiro){
-                printf("Erro: Posicao ja ocupada no tabuleiro ou limite do tabuleiro ultrapassado!\n");
+                printf("Erro: Posição já ocupada no tabuleiro ou limite do tabuleiro ultrapassado!\n");
                 return;
             }
             tabuleiro[coord_i + k][coord_j] = navio[k];
         }
-    }   
+    } else if (orientacao == 'd') {
+        unsigned short orient_diagonal;
+        printf("Digite: \n");
+        printf("(1)\t\t Diagonal corta quadrantes ímpares\n");
+        printf("(2)\t\t Diagonal corta quadrantes pares\n");
+        printf("Orientação: ");
+        scanf("%hu", &orient_diagonal);
+
+        while (orient_diagonal < 1 || orient_diagonal > 2){
+            printf("Orientação inválida! Tente novamente...");
+            printf("Orientação: ");
+            scanf("%hu", &orient_diagonal);
+        }
+        printf("\n");
+        // Diagonal que corta quadrantes ímpares (de baixo para cima, da esquerda para a direita)
+        if(orient_diagonal == 1) {
+            for (unsigned short k = 0; k < tamanho_navio; k++) {
+                if(tabuleiro[coord_i - k][coord_j + k] != 0 && (coord_i - k) < tamanho_tabuleiro){
+                    printf("Erro: Posição já ocupada no tabuleiro ou limite do tabuleiro ultrapassado!\n");
+                    return;
+                }
+            tabuleiro[coord_i - k][coord_j + k] = navio[k];
+            }
+        // Diagonal que corta quadrantes pares (de cima para baixo, da esquerda para a direita)
+        } else {
+            for (unsigned short k = 0; k < tamanho_navio; k++) {
+                if(tabuleiro[coord_i + k][coord_j + k] != 0 && (coord_i + k) < tamanho_tabuleiro){
+                    printf("Erro: Posição já ocupada no tabuleiro ou limite do tabuleiro ultrapassado!\n");
+                    return;
+                }
+                tabuleiro[coord_i + k][coord_j + k] = navio[k];
+            }
+        }
+    }
 }
 
 int main() {
-    // Nível Novato - Posicionamento dos Navios
-    // Sugestão: Declare uma matriz bidimensional para representar o tabuleiro (Ex: int tabuleiro[5][5];).
-    // Sugestão: Posicione dois navios no tabuleiro, um verticalmente e outro horizontalmente.
-    // Sugestão: Utilize `printf` para exibir as coordenadas de cada parte dos navios.
-    // Durante a construção do tabuleiro, certificar-se de acrescentar a numeração 1-10 na minha coluna (j=0)
-    // Durante as manipulações, certificar-se de que na posição tabuleiro[i][0] temos as numerações 1-10
-    // O tabuleiro de fato começa em tabuleiro[i][j>=1]
 
     // TODO Deixar o processo mais dinamico solicitando entrada do usuário para o posicionamento e orientacao dos navios e definiçao do tamanho do tabuleiro
     // Navios podem ter tamanho variável (mínimo 2 e máximo 5)
@@ -173,9 +197,9 @@ int main() {
 
     printf("\nTamanho do tabuleiro definido: %hu x %hu\n\n", tamanho_tabuleiro, tamanho_tabuleiro);
     printf("Escolha o nivel de dificuldade:\n");
-    printf("(1) - Novato:       1 navio tamanho 3\n");
-    printf("(2) - Aventureiro:  1 navio tamanho 3 e 1 navio tamanho 4\n");
-    printf("(3) - Mestre:       1 navio tamanho 3, 1 navio tamanho 4 e 1 navio tamanho 5\n\n");
+    printf("(1)\t\t Novato:       1 navio tamanho 3\n");
+    printf("(2)\t\t Aventureiro:  1 navio tamanho 3 e 1 navio tamanho 4\n");
+    printf("(3)\t\t Mestre:       1 navio tamanho 3, 1 navio tamanho 4 e 1 navio tamanho 5\n\n");
 
     // Salvar opção do usuário
     unsigned short nivel_dificuldade;
@@ -199,6 +223,7 @@ int main() {
 
     
     // Posicionar navios de acordo com o nível de dificuldade
+    // Poderia transformar o switch em uma funcao, mas deixei assim para facilitar a visualizacao do fluxo principal do programa
     switch(nivel_dificuldade){
         case 1:
             printf("Escolha as coordenadas do navio tamanho 3: \n");
@@ -208,12 +233,12 @@ int main() {
             printf("Digite o numero para escolher a linha de partida: ");
             scanf("%hu", &coord_num);
             printf("\n");
-            printf("Escolha a orientacao do navio (h para horizontal, v para vertical): ");
+            printf("Escolha a orientação do navio ('h' para horizontal, 'v' para vertical e 'd' para diagonal): ");
             scanf(" %c", &orientacao);
 
             unsigned short navio[3] = {3, 3, 3};
-            posicionar_navio(tabuleiro_inicializado, tamanho_tabuleiro, navio, coord_letra, coord_num, orientacao);
-            printf("########## Configuracao final ########## \n");
+            posicionar_navio(tabuleiro_inicializado, tamanho_tabuleiro, navio, 3, coord_letra, coord_num, orientacao);
+            printf("########## Configuração final ########## \n");
             printf("########################################\n");
             printar_tabuleiro(letras, numeros, tabuleiro_inicializado, tamanho_tabuleiro);
             
@@ -228,12 +253,12 @@ int main() {
             printf("Digite o numero para escolher a linha de partida: ");
             scanf("%hu", &coord_num);
             printf("\n");
-            printf("Escolha a orientacao do navio (h para horizontal, v para vertical): ");
+            printf("Escolha a orientação do navio ('h' para horizontal, 'v' para vertical e 'd' para diagonal): ");
             scanf(" %c", &orientacao);
             unsigned short navio1[3] = {3, 3, 3};
             unsigned short navio2[4] = {4, 4, 4, 4};
-            posicionar_navio(tabuleiro_inicializado, tamanho_tabuleiro, navio1, coord_letra, coord_num, orientacao);
-            printf("Escolha as coordenadas do navio tamanho 3: \n");
+            posicionar_navio(tabuleiro_inicializado, tamanho_tabuleiro, navio1, 3, coord_letra, coord_num, orientacao);
+            printf("Escolha as coordenadas do navio tamanho 4: \n");
             printar_tabuleiro(letras, numeros, tabuleiro_inicializado, tamanho_tabuleiro);
 
             printf("Digite a letra para escolher a coluna de partida: ");
@@ -241,11 +266,11 @@ int main() {
             printf("Digite o numero para escolher a linha de partida: ");
             scanf("%hu", &coord_num);
             printf("\n");
-            printf("Escolha a orientacao do navio (h para horizontal, v para vertical): ");
+            printf("Escolha a orientação do navio ('h' para horizontal, 'v' para vertical e 'd' para diagonal): ");
             scanf(" %c", &orientacao);
-            posicionar_navio(tabuleiro_inicializado, tamanho_tabuleiro, navio2, coord_letra, coord_num, orientacao);
+            posicionar_navio(tabuleiro_inicializado, tamanho_tabuleiro, navio2, 4, coord_letra, coord_num, orientacao);
 
-            printf("########## Configuracao final ########## \n");
+            printf("########## Configuração final ########## \n");
             printf("########################################\n");
             printar_tabuleiro(letras, numeros, tabuleiro_inicializado, tamanho_tabuleiro);
             
@@ -261,23 +286,23 @@ int main() {
             printf("Digite o numero para escolher a linha de partida: ");
             scanf("%hu", &coord_num);
             printf("\n");
-            printf("Escolha a orientacao do navio (h para horizontal, v para vertical): ");
+            printf("Escolha a orientação do navio ('h' para horizontal, 'v' para vertical e 'd' para diagonal): ");
             scanf(" %c", &orientacao);
             unsigned short navio3[3] = {3, 3, 3};
             unsigned short navio4[4] = {4, 4, 4, 4};
             unsigned short navio5[5] = {5, 5, 5, 5, 5};
-            posicionar_navio(tabuleiro_inicializado, tamanho_tabuleiro, navio3, coord_letra, coord_num, orientacao);
+            posicionar_navio(tabuleiro_inicializado, tamanho_tabuleiro, navio3, 3, coord_letra, coord_num, orientacao);
             printf("Escolha as coordenadas do navio tamanho 4: \n");
             printar_tabuleiro(letras, numeros, tabuleiro_inicializado, tamanho_tabuleiro);
 
             printf("Digite a letra para escolher a coluna de partida: ");
             scanf(" %c", &coord_letra);
-            printf("Digite o numero para escolher a linha de partida: ");
+            printf("Digite o número para escolher a linha de partida: ");
             scanf("%hu", &coord_num);
             printf("\n");
-            printf("Escolha a orientacao do navio (h para horizontal, v para vertical): ");
+            printf("Escolha a orientação do navio ('h' para horizontal, 'v' para vertical e 'd' para diagonal): ");
             scanf(" %c", &orientacao);
-            posicionar_navio(tabuleiro_inicializado, tamanho_tabuleiro, navio4, coord_letra, coord_num, orientacao);
+            posicionar_navio(tabuleiro_inicializado, tamanho_tabuleiro, navio4, 4, coord_letra, coord_num, orientacao);
             printf("Escolha as coordenadas do navio tamanho 5: \n");
             printar_tabuleiro(letras, numeros, tabuleiro_inicializado, tamanho_tabuleiro);
 
@@ -286,17 +311,17 @@ int main() {
             printf("Digite o numero para escolher a linha de partida: ");
             scanf("%hu", &coord_num);
             printf("\n");
-            printf("Escolha a orientacao do navio (h para horizontal, v para vertical): ");
+            printf("Escolha a orientação do navio ('h' para horizontal, 'v' para vertical e 'd' para diagonal): ");
             scanf(" %c", &orientacao);
-            posicionar_navio(tabuleiro_inicializado, tamanho_tabuleiro, navio5, coord_letra, coord_num, orientacao);
-            printf("########## Configuracao final ########## \n");
+            posicionar_navio(tabuleiro_inicializado, tamanho_tabuleiro, navio5, 5, coord_letra, coord_num, orientacao);
+            printf("########## Configuração final ########## \n");
             printf("########################################\n");
             printar_tabuleiro(letras, numeros, tabuleiro_inicializado, tamanho_tabuleiro);
             
             break;
 
         default:
-            printf("Nivel de dificuldade invalido!\n"); // Redundante, mas tudo bem
+            printf("Nível de dificuldade inválido!\n"); // Redundante, mas tudo bem
             break;
 
     }
