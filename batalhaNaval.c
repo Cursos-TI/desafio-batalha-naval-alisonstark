@@ -220,7 +220,6 @@ void aplicar_cruz(unsigned short** tabuleiro, unsigned short tamanho_tabuleiro){
 
 int main() {
 
-    // TODO Deixar o processo mais dinamico solicitando entrada do usuário para o posicionamento e orientação dos navios e definição do tamanho do tabuleiro
     // Navios podem ter tamanho variável (mínimo 2 e máximo 5)
     // Tabuleiro pode ter tamanho variável (mínimo 5x5 e máximo 10x10)
 
